@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <title>CryptoZombies front-end</title>
+    <script language="javascript" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script language="javascript" type="text/javascript" src="web3.min.js"></script>
+    <script language="javascript" type="text/javascript" src="cryptozombies_abi.js"></script>
+  </head>
+  <body>
+    <div id="zombies"></div>
+
+    <script>
+      var cryptoZombies;
+      var userAccount;
+
+      function startApp() {
+        var cryptoZombiesAddress = "YOUR_CONTRACT_ADDRESS";
+        cryptoZombies = new web3js.eth.Contract(cryptoZombiesABI, cryptoZombiesAddress);
+
+        var accountInterval = setInterval(function() {
+          // 계정이 바뀌었는지 확인
+          if (web3.eth.accounts[0] !== userAccount) {
+            userAccount = web3.eth.accounts[0];
+            // 새 계정에 대한 UI로 업데이트하기 위한 함수 호출
+            getZombiesByOwner(userAccount)
+            .then(displayZombies);
+          }
+        }, 100);
+      }
+
+      function displayZombies(ids) {
+        // Start here
+      }
+
+      function getZombieDetails(id) {
+        return cryptoZombies.methods.zombies(id).call()
+      }
+
+      function zombieToOwner(id) {
+        return cryptoZombies.methods.zombieToOwner(id).call()
+      }
+
+      function getZombiesByOwner(owner) {
+        return cryptoZombies.methods.getZombiesByOwner(owner).call()
+      }
+
+      window.addEventListener('load', function() {
+
+        // Web3가 브라우저에 주입되었는지 확인(Mist/MetaMask)
+        if (typeof web3 !== 'undefined') {
+          // Mist/MetaMask의 프로바이더 사용
+          web3js = new Web3(web3.currentProvider);
+        } else {
+          // 사용자가 Metamask를 설치하지 않은 경우에 대해 처리
+          // 사용자들에게 Metamask를 설치하라는 등의 메세지를 보여줄 것
+        }
+
+        // 이제 자네 앱을 시작하고 web3에 자유롭게 접근할 수 있네:
+        startApp()
+
+      })
+    </script>
+  </body>
+</html>
