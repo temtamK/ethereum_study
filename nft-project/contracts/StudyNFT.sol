@@ -29,4 +29,8 @@ contract StudyNFT is ERC721, Ownable {
         _safeMint(msg.sender, totalSupply++);
     }
   }
+
+  function withdraw() external onlyOwner {
+    payable(msg.sender).transfer(address(this).balance);
+  }
 }
