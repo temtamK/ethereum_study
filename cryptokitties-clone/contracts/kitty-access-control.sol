@@ -1,7 +1,9 @@
+//// solidity 버전 최신화
 pragma solidity ^0.8.18;
-
+//// Pausable 컨트랙트를 상속받아서 일시 정지 기능을 사용할 수 있도록 함
 import "@openzeppelin/contracts/security/Pausable.sol";
 
+//// 크립토키티의 관리자 계정 설정 및 긴급 상황시 크립토키티를 일시 정지하는 기능을 제공하는 컨트랙트
 /// @title A facet of KittyCore that manages special access privileges.
 /// @author Axiom Zen (https://www.axiomzen.co)
 /// @dev See the KittyCore contract documentation to understand how the various contract facets are arranged.
@@ -23,14 +25,21 @@ contract KittyAccessControl is Pausable {
     // convenience. The less we use an address, the less likely it is that we somehow compromise the
     // account.
 
+    //// 새로운 컨트랙트 주소로 컨트랙트 업그레이드시 발생하는 이벤트
     /// @dev Emited when contract is upgraded - See README.md for updgrade plan
     event ContractUpgrade(address newContract);
 
     // The addresses of the accounts (or contracts) that can execute actions within each roles.
+    //// 컨트랙트에서 import하는 컨트랙트 주소를 세팅해주는 역할
     address public ceoAddress;
+    //// kittyCore 컨트랙트에서 돈을 인출하는 역할
     address public cfoAddress;
+    //// 크립토키티의 전반적인 운영에 기여
+    //// Sale/Siring ClockAuction 컨트랙트에서 KittyCore로 돈 인출, 서비스 운영용 함수 호출
     address public cooAddress;
 
+    //// 서비스 중지 여부 표시
+    //// ERC721 pause 기능에 포함되어 있어서 삭제
     // @dev Keeps track whether the contract is paused. When that is true, most actions are blocked
     // bool public paused = false;
 
@@ -85,6 +94,7 @@ contract KittyAccessControl is Pausable {
         cooAddress = _newCOO;
     }
 
+    //// 인출하는 기능을 최신 문법인 payable을 사용하도록 수정
     function withdrawBalance() external onlyCFO {
         // cfoAddress.transfer(this.balance);
         (bool success, ) = payable(cfoAddress).call{
@@ -93,6 +103,7 @@ contract KittyAccessControl is Pausable {
         require(success, "Failed to send Ether");
     }
 
+    //// 함수제어자들이 Pausable 컨트랙트에서 정의되어 사용되므로 삭제
     /*** Pausable functionality adapted from OpenZeppelin ***/
 
     /// @dev Modifier to allow actions only when the contract IS NOT paused
@@ -110,6 +121,7 @@ contract KittyAccessControl is Pausable {
     /// @dev Called by any "C-level" role to pause the contract. Used only when
     ///  a bug or exploit is detected and we need to limit damage.
     function pause() public onlyCLevel {
+        //// Pausable 컨트랙트의 _pause() 함수를 호출하도록 수정
         // paused = true;
         _pause();
     }
@@ -118,6 +130,7 @@ contract KittyAccessControl is Pausable {
     ///  one reason we may pause the contract is when CFO or COO accounts are
     ///  compromised.
     function unpause() public onlyCEO {
+        //// Pausable 컨트랙트의 _unpause() 함수를 호출하도록 수정
         // can't unpause if contract was upgraded
         // paused = false;
         _unpause();
