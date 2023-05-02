@@ -1,8 +1,10 @@
 pragma solidity ^0.8.18;
 
 import "./kitty-access-control.sol";
+//// kitty-ownership에서 상속받았던 ERC721 인터페이스를 openzepplin에서 제공하는 ERC721Enumerable로 변경
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 
+//// 크립토키티 구조체 정의 및 생성, 전송 기능
 /// @title Base contract for CryptoKitties. Holds all common structs, events and base variables.
 /// @author Axiom Zen (https://www.axiomzen.co)
 /// @dev See the KittyCore contract documentation to understand how the various contract facets are arranged.
@@ -25,6 +27,7 @@ contract KittyBase is KittyAccessControl, ERC721Enumerable {
         uint256 genes
     );
 
+    //// ERC721 Enumerable에서 정의된 Transfer 이벤트를 사용하기 위해 아래 내용 삭제
     /// @dev Transfer event as defined in current draft of ERC721. Emitted every time a kitten
     ///  ownership is assigned, including births.
     // event Transfer(
@@ -111,14 +114,22 @@ contract KittyBase is KittyAccessControl, ERC721Enumerable {
     ///  In other words, cat ID 0 is invalid... ;-)
     Kitty[] kitties;
 
+    //// ERC721 private _owners[tokenId]와 같은 의미
+    //// Write: ERC721 _transfer()
+    //// Read: ERC721 ownerOf()
+    //// Delete: ERC721 _burn()
     /// @dev A mapping from cat IDs to the address that owns them. All cats have
     ///  some valid owner address, even gen0 cats are created with a non-zero owner.
     // mapping(uint256 => address) public kittyIndexToOwner;
 
+    //// ERC721 private _balances[address]와 같은 의미
+    //// Write: ERC721 _transfer()
+    //// Read: ERC721 balanceOf()
     // @dev A mapping from owner address to count of tokens that address owns.
     //  Used internally inside balanceOf() to resolve ownership count.
     // mapping(address => uint256) ownershipTokenCount;
 
+    ////
     /// @dev A mapping from KittyIDs to an address that has been approved to call
     ///  transferFrom(). Each Kitty can only have one approved address for transfer
     ///  at any time. A zero value means no approval is outstanding.
@@ -129,6 +140,7 @@ contract KittyBase is KittyAccessControl, ERC721Enumerable {
     ///  address for siring at any time. A zero value means no approval is outstanding.
     mapping(uint256 => address) public sireAllowedToAddress;
 
+    //// ERC721 _transfer()로 대체
     /// @dev Assigns ownership of a specific Kitty to an address.
     function _transfer(
         address _from,
@@ -179,6 +191,7 @@ contract KittyBase is KittyAccessControl, ERC721Enumerable {
 
         Kitty memory _kitty = Kitty({
             genes: _genes,
+            //// now -> block.timestamp
             birthTime: uint64(block.timestamp),
             cooldownEndTime: 0,
             matronId: uint32(_matronId),
@@ -187,6 +200,7 @@ contract KittyBase is KittyAccessControl, ERC721Enumerable {
             cooldownIndex: 0,
             generation: uint16(_generation)
         });
+        //// push()가 더이상 배열의 길이를 리턴하지 않으므로 아래와 같이 수정
         // uint256 newKittenId = kitties.push(_kitty) - 1;
         kitties.push(_kitty);
         uint256 newKittenId = kitties.length - 1;
@@ -195,6 +209,7 @@ contract KittyBase is KittyAccessControl, ERC721Enumerable {
         // let's just be 100% sure we never let this happen.
         require(newKittenId <= 4294967295);
 
+        //// 이벤트 발생시 emit 키워드 사용하도록 수정
         // emit the birth event
         emit Birth(
             _owner,
@@ -204,6 +219,8 @@ contract KittyBase is KittyAccessControl, ERC721Enumerable {
             _kitty.genes
         );
 
+        //// ERC721 _safeMint()로 대체
+        //// 민팅할 때 더이상 _from 주소를 0으로 설정할 수 없음
         // This will assign ownership, and also emit the Transfer event as
         // per ERC721 draft
         // _transfer(0, _owner, newKittenId);
